@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+
+class User extends Authenticatable implements AuthenticatableContract, CanResetPasswordContract
 {
     use HasFactory, Notifiable;
 
@@ -40,4 +43,27 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    protected $table = 'users';
+
+    public function comments()
+    {
+        return $this->hasMany('App\Models\Comment', 'from_user');
+    }
+
+    public function posts()
+    {
+        return $this->hasMany('App\Models\Post', 'author_id');
+    }
+
+    public function can_post()
+    {
+        $role = $this->role;
+        return ($role == 'author' || $role == 'admin');
+    }
+
+    public function is_admin()
+    {
+        return $this->role == 'admin';
+    }
 }
